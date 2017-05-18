@@ -13,5 +13,21 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Header Files\Sixense">
+      <UniqueIdentifier>{0b059159-96bd-4ba5-ad88-f1177a71b2a6}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\include\sixense_math.hpp">
+      <Filter>Header Files\Sixense</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\sixense.h">
+      <Filter>Header Files\Sixense</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
