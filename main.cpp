@@ -10,10 +10,41 @@
 
 #define SIXENSE_MAX_HISTORY 1
 
+typedef struct _sixenseControllerDataOld {
+    float pos[3];
+    float rot_mat[3][3];
+    char joystick_x;
+    char joystick_y;
+    unsigned char trigger;
+    unsigned int buttons;
+    unsigned char sequence_number;
+    float rot_quat[4];
+    unsigned short firmware_revision;
+    unsigned short hardware_revision;
+    unsigned short packet_type;
+    unsigned short magnetic_frequency;
+    int enabled;
+    int controller_index;
+    unsigned char is_docked;
+    unsigned char which_hand;
+} sixenseControllerDataOld;
+
+typedef struct _sixenseAllControllerDataOld {
+    sixenseControllerDataOld controllers[4];
+} sixenseAllControllerDataOld;
+
+#ifdef SIXENSE_LEGACY
+typedef sixenseAllControllerDataOld compatAllControllerData;
+typedef sixenseControllerDataOld compatControllerData;
+#else
+typedef sixenseAllControllerData compatAllControllerData;
+typedef sixenseControllerData compatControllerData;
+#endif
+
 bool g_running = false;
 std::thread g_thread;
 std::mutex g_data_mutex;
-std::deque<sixenseAllControllerData> g_controller_data;
+std::deque<compatAllControllerData> g_controller_data;
 
 void sixenseThreadFunc()
 {
@@ -32,13 +63,13 @@ void sixenseThreadFunc()
         vr::TrackedDevicePose_t poses[SIXENSE_MAX_CONTROLLERS];
         vr::VRSystem()->GetDeviceToAbsoluteTrackingPose(vr::TrackingUniverseSeated, 0.0f, poses, SIXENSE_MAX_CONTROLLERS);
 
-        sixenseAllControllerData all_data = {};
+        compatAllControllerData all_data = {};
         for (int i = 0; i < SIXENSE_MAX_CONTROLLERS; i++)
         {
             if (devices[i] == vr::k_unTrackedDeviceIndexInvalid)
                 break;
 
-            sixenseControllerData& data = all_data.controllers[i];
+            compatControllerData& data = all_data.controllers[i];
             vr::HmdMatrix34_t& pose = poses[devices[i]].mDeviceToAbsoluteTracking;
 
             vr::VRControllerState_t state;
@@ -56,9 +87,15 @@ void sixenseThreadFunc()
                     data.rot_mat[col][row] = pose.m[row][col];
 
             // TODO: Buttons
+#ifdef SIXENSE_LEGACY
+            data.joystick_x = (int8_t)(state.rAxis[0].x * 127.0f);
+            data.joystick_y = (int8_t)(state.rAxis[0].y * 127.0f);
+            data.trigger = (uint8_t)(state.rAxis[1].x * 255.0f);
+#else
             data.joystick_x = state.rAxis[0].x;
             data.joystick_y = state.rAxis[0].y;
             data.trigger = state.rAxis[1].x;
+#endif
 
             data.sequence_number = sequence;
 
@@ -78,7 +115,9 @@ void sixenseThreadFunc()
             data.controller_index = i;
             data.is_docked = vr::VRSystem()->GetBoolTrackedDeviceProperty(devices[i], vr::Prop_DeviceIsCharging_Bool);
             data.which_hand = vr::VRSystem()->GetControllerRoleForTrackedDeviceIndex(devices[i]);
+#ifndef SIXENSE_LEGACY
             data.hemi_tracking_enabled = 0;
+#endif
         }
 
         {
@@ -100,7 +139,7 @@ SIXENSE_EXPORT int sixenseInit(void)
     {
         for (int i = 0; i < SIXENSE_MAX_HISTORY; i++)
         {
-            sixenseAllControllerData all_data = {};
+            compatAllControllerData all_data = {};
             g_controller_data.push_back(all_data);
         }
         g_running = true;
@@ -144,7 +183,7 @@ SIXENSE_EXPORT int sixenseGetData(int which, int index_back, sixenseControllerDa
         return SIXENSE_FAILURE;
 
     std::lock_guard<std::mutex> lk(g_data_mutex);
-    *data = g_controller_data[index_back].controllers[which];
+    *(compatControllerData*)data = g_controller_data[index_back].controllers[which];
     return data->enabled ? SIXENSE_SUCCESS : SIXENSE_FAILURE;
 }
 
@@ -154,7 +193,7 @@ SIXENSE_EXPORT int sixenseGetAllData(int index_back, sixenseAllControllerData *d
         return SIXENSE_FAILURE;
 
     std::lock_guard<std::mutex> lk(g_data_mutex);
-    *data = g_controller_data[index_back];
+    *(compatAllControllerData*)data = g_controller_data[index_back];
     return SIXENSE_SUCCESS;
 }
 
@@ -164,7 +203,7 @@ SIXENSE_EXPORT int sixenseGetNewestData(int which, sixenseControllerData *data)
         return SIXENSE_FAILURE;
 
     std::lock_guard<std::mutex> lk(g_data_mutex);
-    *data = g_controller_data[0].controllers[which];
+    *(compatControllerData*)data = g_controller_data[0].controllers[which];
     return data->enabled ? SIXENSE_SUCCESS : SIXENSE_FAILURE;
 }
 
@@ -174,7 +213,7 @@ SIXENSE_EXPORT int sixenseGetAllNewestData(sixenseAllControllerData *data)
         return SIXENSE_FAILURE;
 
     std::lock_guard<std::mutex> lk(g_data_mutex);
-    *data = g_controller_data[0];
+    *(compatAllControllerData*)data = g_controller_data[0];
     return SIXENSE_SUCCESS;
 }
 

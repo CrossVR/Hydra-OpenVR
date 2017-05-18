@@ -87,7 +87,7 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>SIXENSE_BUILDING_DLL;WIN32;_DEBUG;_WINDOWS;_USRDLL;SIXENSE_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>SIXENSE_LEGACY;SIXENSE_BUILDING_DLL;WIN32;_DEBUG;_WINDOWS;_USRDLL;SIXENSE_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>../../include;openvr/headers</AdditionalIncludeDirectories>
     </ClCompile>
@@ -111,7 +111,7 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>SIXENSE_BUILDING_DLL;_DEBUG;_WINDOWS;_USRDLL;SIXENSE_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>SIXENSE_LEGACY;SIXENSE_BUILDING_DLL;_DEBUG;_WINDOWS;_USRDLL;SIXENSE_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>../../include;openvr/headers</AdditionalIncludeDirectories>
     </ClCompile>
@@ -137,7 +137,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>SIXENSE_BUILDING_DLL;WIN32;NDEBUG;_WINDOWS;_USRDLL;SIXENSE_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>SIXENSE_LEGACY;SIXENSE_BUILDING_DLL;WIN32;NDEBUG;_WINDOWS;_USRDLL;SIXENSE_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>../../include;openvr/headers</AdditionalIncludeDirectories>
     </ClCompile>
@@ -165,7 +165,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>SIXENSE_BUILDING_DLL;NDEBUG;_WINDOWS;_USRDLL;SIXENSE_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>SIXENSE_LEGACY;SIXENSE_BUILDING_DLL;NDEBUG;_WINDOWS;_USRDLL;SIXENSE_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>../../include;openvr/headers</AdditionalIncludeDirectories>
     </ClCompile>
