@@ -60,21 +60,21 @@ void sixenseThreadFunc()
 
     for (uint8_t sequence = 0; g_running; sequence++)
     {
-        vr::TrackedDeviceIndex_t devices[SIXENSE_MAX_CONTROLLERS];
-        memset(devices, vr::k_unTrackedDeviceIndexInvalid, sizeof(devices));
-        vr::VRSystem()->GetSortedTrackedDeviceIndicesOfClass(vr::TrackedDeviceClass_Controller, devices, SIXENSE_MAX_CONTROLLERS);
-
-        vr::TrackedDevicePose_t poses[SIXENSE_MAX_CONTROLLERS];
-        vr::VRSystem()->GetDeviceToAbsoluteTrackingPose(vr::TrackingUniverseSeated, 0.0f, poses, SIXENSE_MAX_CONTROLLERS);
+        vr::TrackedDevicePose_t poses[vr::k_unMaxTrackedDeviceCount];
+        vr::VRSystem()->GetDeviceToAbsoluteTrackingPose(vr::TrackingUniverseSeated, 0.0f, poses, vr::k_unMaxTrackedDeviceCount);
 
         compatAllControllerData all_data = {};
-        for (int i = 0; i < SIXENSE_MAX_CONTROLLERS; i++)
+        for (int i = 0, j = 0; i < vr::k_unMaxTrackedDeviceCount && j < SIXENSE_MAX_CONTROLLERS; i++)
         {
-            if (devices[i] == vr::k_unTrackedDeviceIndexInvalid)
-                break;
+            if (vr::VRSystem()->GetTrackedDeviceClass(i) != vr::TrackedDeviceClass_Controller)
+                continue;
 
-            compatControllerData& data = all_data.controllers[i];
-            vr::HmdMatrix34_t& pose = poses[devices[i]].mDeviceToAbsoluteTracking;
+            compatControllerData& data = all_data.controllers[j++];
+            vr::HmdMatrix34_t& pose = poses[i].mDeviceToAbsoluteTracking;
+
+            vr::VRControllerState_t state;
+            if (!vr::VRSystem()->GetControllerState(i, &state, sizeof(state)))
+                continue;
 
             // Sixense SDK is column-major instead of row-major
             float matData[3][3];
@@ -82,10 +82,6 @@ void sixenseThreadFunc()
                 for (int col = 0; col < 3; col++)
                     matData[col][row] = pose.m[row][col];
             sixenseMath::Matrix3 mat = offset * sixenseMath::Matrix3(matData);
-
-            vr::VRControllerState_t state;
-            if (!vr::VRSystem()->GetControllerState(devices[i], &state, sizeof(state)))
-                break;
 
             // Sixense SDK uses millimeters instead of meters
             data.pos[0] = pose.m[0][3] * 1000.0f;
@@ -122,9 +118,9 @@ void sixenseThreadFunc()
             data.packet_type = 1;
             data.magnetic_frequency = 0;
             data.enabled = 1;
-            data.controller_index = i;
-            data.is_docked = vr::VRSystem()->GetBoolTrackedDeviceProperty(devices[i], vr::Prop_DeviceIsCharging_Bool);
-            data.which_hand = vr::VRSystem()->GetControllerRoleForTrackedDeviceIndex(devices[i]);
+            data.controller_index = j;
+            data.is_docked = vr::VRSystem()->GetBoolTrackedDeviceProperty(i, vr::Prop_DeviceIsCharging_Bool);
+            data.which_hand = vr::VRSystem()->GetControllerRoleForTrackedDeviceIndex(i);
 #ifndef SIXENSE_LEGACY
             data.hemi_tracking_enabled = 0;
 #endif
@@ -178,6 +174,7 @@ SIXENSE_EXPORT int sixenseIsControllerEnabled(int which)
     if (which >= 4)
         return SIXENSE_FAILURE;
 
+    // TODO: This doesn't match the indices used in sixenseControllerData
     vr::TrackedDeviceIndex_t devices[SIXENSE_MAX_CONTROLLERS];
     memset(devices, vr::k_unTrackedDeviceIndexInvalid, sizeof(devices));
     vr::VRSystem()->GetSortedTrackedDeviceIndicesOfClass(vr::TrackedDeviceClass_Controller, devices, SIXENSE_MAX_CONTROLLERS);
