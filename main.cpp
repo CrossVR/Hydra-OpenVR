@@ -104,6 +104,30 @@ void sixenseThreadFunc()
             data.trigger = state.rAxis[1].x;
 #endif
 
+            if (state.ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_Grip))
+                data.buttons |= SIXENSE_BUTTON_BUMPER;
+
+            if (state.ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_ApplicationMenu))
+                data.buttons |= SIXENSE_BUTTON_START;
+
+            if (state.ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_SteamVR_Touchpad))
+            {
+                if (state.rAxis[0].y < 0.0f)
+                {
+                    if (state.rAxis[0].x < 0.0f)
+                        data.buttons |= SIXENSE_BUTTON_1;
+                    else
+                        data.buttons |= SIXENSE_BUTTON_2;
+                }
+                else
+                {
+                    if (state.rAxis[0].x < 0.0f)
+                        data.buttons |= SIXENSE_BUTTON_3;
+                    else
+                        data.buttons |= SIXENSE_BUTTON_4;
+                }
+            }
+
             data.sequence_number = sequence;
 
             sixenseMath::Quat quat(mat);
