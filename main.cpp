@@ -9,6 +9,7 @@
 #include <chrono>
 
 #define SIXENSE_MAX_HISTORY 50
+#define M_RAD_45 0.78539816339744830961566084581988
 
 typedef struct _sixenseControllerDataOld {
     float pos[3];
@@ -54,6 +55,9 @@ void sixenseThreadFunc()
     uint64_t hw_rev = vr::VRSystem()->GetUint64TrackedDeviceProperty(vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_HardwareRevision_Uint64);
     uint64_t fw_rev = vr::VRSystem()->GetUint64TrackedDeviceProperty(vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_FirmwareVersion_Uint64);
 
+    sixenseMath::Vector3 axis(1.0f, 0.0f, 0.0f);
+    sixenseMath::Matrix3 offset = sixenseMath::Matrix3::rotation((float)-M_RAD_45, axis);
+
     for (uint8_t sequence = 0; g_running; sequence++)
     {
         vr::TrackedDeviceIndex_t devices[SIXENSE_MAX_CONTROLLERS];
@@ -72,6 +76,13 @@ void sixenseThreadFunc()
             compatControllerData& data = all_data.controllers[i];
             vr::HmdMatrix34_t& pose = poses[devices[i]].mDeviceToAbsoluteTracking;
 
+            // Sixense SDK is column-major instead of row-major
+            float matData[3][3];
+            for (int row = 0; row < 3; row++)
+                for (int col = 0; col < 3; col++)
+                    matData[col][row] = pose.m[row][col];
+            sixenseMath::Matrix3 mat = offset * sixenseMath::Matrix3(matData);
+
             vr::VRControllerState_t state;
             if (!vr::VRSystem()->GetControllerState(devices[i], &state, sizeof(state)))
                 break;
@@ -84,7 +95,7 @@ void sixenseThreadFunc()
             // Sixense SDK is column-major instead of row-major
             for (int row = 0; row < 3; row++)
                 for (int col = 0; col < 3; col++)
-                    data.rot_mat[col][row] = pose.m[row][col];
+                    data.rot_mat[col][row] = mat[col][row];
 
             // TODO: Buttons
 #ifdef SIXENSE_LEGACY
@@ -99,7 +110,6 @@ void sixenseThreadFunc()
 
             data.sequence_number = sequence;
 
-            sixenseMath::Matrix3 mat(data.rot_mat);
             sixenseMath::Quat quat(mat);
             data.rot_quat[0] = quat[0];
             data.rot_quat[1] = quat[1];
