@@ -13,8 +13,8 @@
 typedef struct _sixenseControllerDataOld {
     float pos[3];
     float rot_mat[3][3];
-    char joystick_x;
-    char joystick_y;
+    unsigned char joystick_x;
+    unsigned char joystick_y;
     unsigned char trigger;
     unsigned int buttons;
     unsigned char sequence_number;
@@ -88,8 +88,8 @@ void sixenseThreadFunc()
 
             // TODO: Buttons
 #ifdef SIXENSE_LEGACY
-            data.joystick_x = (int8_t)(state.rAxis[0].x * 127.0f);
-            data.joystick_y = (int8_t)(state.rAxis[0].y * 127.0f);
+            data.joystick_x = (uint8_t)((state.rAxis[0].x + 1.0f) * 127.5f);
+            data.joystick_y = (uint8_t)((state.rAxis[0].y + 1.0f) * 127.5f);
             data.trigger = (uint8_t)(state.rAxis[1].x * 255.0f);
 #else
             data.joystick_x = state.rAxis[0].x;
