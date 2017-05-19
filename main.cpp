@@ -8,7 +8,7 @@
 #include <mutex>
 #include <chrono>
 
-#define SIXENSE_MAX_HISTORY 10
+#define SIXENSE_MAX_HISTORY 50
 
 typedef struct _sixenseControllerDataOld {
     float pos[3];
